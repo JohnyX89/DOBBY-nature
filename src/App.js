@@ -1,13 +1,12 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { useMoralis, MoralisProvider } from "react-moralis";
-import { Moralis } from "moralis"
-import Body from "./components/Body"
+import { useMoralis, MoralisProvider,useWeb3ExecuteFunction, useMoralisWeb3Api } from "react-moralis";
 
 
 function App() {
   <script src="https://unpkg.com/moralis@0.0.184/dist/moralis.js"></script>
-  const { authenticate, isAuthenticated, isAuthenticating, user, account, logout } = useMoralis();
+  const { authenticate, isAuthenticated, isAuthenticating, user, account, logout, Moralis} = useMoralis();
+  const contractProcessor = useWeb3ExecuteFunction();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -36,10 +35,12 @@ function App() {
   }
 
 
-  async function donate() {
+  async function donate(val) {
     let options = {
       contractAddress: "0x46618B5d0C719e5b2F59A83BE6B03289bcD757F4",
       functionName: "DonateMoneyToContract",
+      abi:[
+        {
       inputs: [
         {
           "internalType": "uint256",
@@ -51,11 +52,19 @@ function App() {
       outputs: [],
       stateMutability: "payable",
       type: "function",
+    }],
+    params:{
+      piceInWei:val
+    },
       // Params: {
       //   Note: "Thanks for your work",
       // },
-      msgValue: Moralis.Units.ETH(0.015),
-    };
+      msgValue: Moralis.Units.ETH(val)
+    }
+
+    await contractProcessor.fetch({
+      params:options
+    })
 
 
     console.log("donated");
@@ -66,6 +75,8 @@ function App() {
     let options = {
       contractAddress: "0x46618B5d0C719e5b2F59A83BE6B03289bcD757F4",
       functionName: "getTotalDonations",
+      abi: [
+        {
       inputs: [],
       name: "getTotalDonations",
       outputs: [
@@ -77,11 +88,16 @@ function App() {
       ],
       stateMutability: "view",
       type: "function",
+      } 
+    ]
       // Params: {
       //   Note: "Thanks for your work",
       // },
       // msgValue: Moralis.Units.ETH(0.1),
-    };
+    }
+    await contractProcessor.fetch({
+      params:options
+    })
     console.log(options);
   }
 
@@ -90,9 +106,8 @@ function App() {
       <h1>Moralis Hello World!</h1>
       <button onClick={logIn}>Moralis Metamask Login</button>
       <button onClick={logOut} disabled={isAuthenticating}>Logout</button>
-      <button onClick={donate} disabled={isAuthenticating}>Donate</button>
-      <button onClick={showStake} disabled={isAuthenticating}>Show donated</button>
-      <Body></Body>
+      <button onClick={() => donate(0.0001)}>Donate 0.01</button>
+      <button onClick={() => showStake}>ShowStake</button>
     </div>
   );
 }
