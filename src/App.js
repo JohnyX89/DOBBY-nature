@@ -1,12 +1,14 @@
 import React, { useEffect } from 'react';
 import './App.css';
-import { useMoralis, MoralisProvider,useWeb3ExecuteFunction, useMoralisWeb3Api } from "react-moralis";
+import { useMoralis, MoralisProvider,useWeb3ExecuteFunction, useMoralisWeb3Api, useChain } from "react-moralis";
+import { isCommunityResourcable } from '@ethersproject/providers';
 
 
 function App() {
   <script src="https://unpkg.com/moralis@0.0.184/dist/moralis.js"></script>
   const { authenticate, isAuthenticated, isAuthenticating, user, account, logout, Moralis} = useMoralis();
   const contractProcessor = useWeb3ExecuteFunction();
+  const {chain} = useChain()
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -17,11 +19,12 @@ function App() {
 
   const logIn = async () => {
     if (!isAuthenticated) {
-
       await authenticate({ signingMessage: "Log in using Moralis" })
         .then(function (user) {
+          
           console.log("logged in user:", user);
           // console.log(user!.get("ethAddress"));
+          
         })
         .catch(function (error) {
           console.log(error);
@@ -36,6 +39,7 @@ function App() {
 
 
   async function donate(val) {
+    console.log("Test")
     let options = {
       contractAddress: "0x46618B5d0C719e5b2F59A83BE6B03289bcD757F4",
       functionName: "DonateMoneyToContract",
@@ -62,7 +66,9 @@ function App() {
       msgValue: Moralis.Units.ETH(val)
     }
 
-    await contractProcessor.fetch({
+
+
+    contractProcessor.fetch({
       params:options
     })
 
@@ -104,6 +110,10 @@ function App() {
   return (
     <div>
       <h1>Moralis Hello World!</h1>
+      <div>
+        <p>Wallet address: {user?.get("ethAddress")} </p>
+        <p>Chain name {chain?.name} </p>
+      </div>
       <button onClick={logIn}>Moralis Metamask Login</button>
       <button onClick={logOut} disabled={isAuthenticating}>Logout</button>
       <button onClick={() => donate(0.0001)}>Donate 0.01</button>
