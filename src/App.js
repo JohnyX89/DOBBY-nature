@@ -6,7 +6,7 @@ import { isCommunityResourcable } from '@ethersproject/providers';
 
 function App() {
   <script src="https://unpkg.com/moralis@0.0.184/dist/moralis.js"></script>
-  const { authenticate, isAuthenticated, isAuthenticating, user, account, logout, Moralis} = useMoralis();
+  const { authenticate, isAuthenticated, isAuthenticating,user, account, logout, Moralis} = useMoralis();
   const contractProcessor = useWeb3ExecuteFunction();
   const {chain} = useChain()
 
@@ -58,7 +58,7 @@ function App() {
       type: "function",
     }],
     params:{
-      piceInWei:val
+      priceInWei:Moralis.Units.ETH(val)
     },
       // Params: {
       //   Note: "Thanks for your work",
@@ -68,9 +68,63 @@ function App() {
 
 
 
-    contractProcessor.fetch({
-      params:options
-    })
+    await contractProcessor.fetch({
+      params: options,
+      onSuccess: () => {
+        console.log("Success")
+      },
+      onError: (error) => {
+        console.log("Error")
+        console.log(error)
+      }
+    });
+
+
+    console.log("donated");
+  }
+
+  async function donateCharity(val1,val2) {
+    let options = {
+      contractAddress: "0x46618B5d0C719e5b2F59A83BE6B03289bcD757F4",
+      functionName: "DonateToCharity",
+      abi:[
+        {
+          inputs: [
+            {
+              "internalType": "address payable",
+              "name": "to",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "balance",
+              "type": "uint256"
+            }
+          ],
+          name: "DonateToCharity",
+          outputs: [],
+          stateMutability: "payable",
+          type: "function"
+        }],
+    params:{
+      to:val1,
+      balance: Moralis.Units.ETH(val2)
+    },
+      msgValue: Moralis.Units.ETH(val2)
+    }
+
+
+
+    await contractProcessor.fetch({
+      params: options,
+      onSuccess: () => {
+        console.log("Success")
+      },
+      onError: (error) => {
+        console.log("Error")
+        console.log(error)
+      }
+    });
 
 
     console.log("donated");
@@ -83,28 +137,31 @@ function App() {
       functionName: "getTotalDonations",
       abi: [
         {
-      inputs: [],
-      name: "getTotalDonations",
-      outputs: [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
+          inputs: [],
+          name: "getTotalDonations",
+          outputs: [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          stateMutability: "view",
+          type: "function"
         }
-      ],
-      stateMutability: "view",
-      type: "function",
-      } 
     ]
-      // Params: {
-      //   Note: "Thanks for your work",
-      // },
-      // msgValue: Moralis.Units.ETH(0.1),
     }
     await contractProcessor.fetch({
-      params:options
-    })
-    console.log(options);
+      params: options,
+      onSuccess: () => {
+        console.log("Success")
+      },
+      onError: (error) => {
+        console.log("Error")
+        console.log(error)
+      }
+    });
+    console.log(parseInt(contractProcessor.data._hex,16));
   }
 
   return (
@@ -117,7 +174,8 @@ function App() {
       <button onClick={logIn}>Moralis Metamask Login</button>
       <button onClick={logOut} disabled={isAuthenticating}>Logout</button>
       <button onClick={() => donate(0.0001)}>Donate 0.01</button>
-      <button onClick={() => showStake}>ShowStake</button>
+      <button onClick={() => showStake()}>ShowStake</button>
+      <button onClick={() => donateCharity('0x35aA2a085532Da8e73f332000D2ae9c42B966da3',0.0001)}>Donate to specific charity</button>
     </div>
   );
 }
